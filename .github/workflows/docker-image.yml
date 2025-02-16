@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 1
       - name: Install Dependencies
         run: |
-          sudo apt update && sudo apt install -y golang
+          sudo apt update && sudo apt install -y golang upx
       - name: Set up QEMU (optional)
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx

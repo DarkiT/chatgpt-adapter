@@ -1,9 +1,10 @@
 package gin
 
 import (
-	"chatgpt-adapter/core/common/toolcall"
 	"fmt"
 	"time"
+
+	"chatgpt-adapter/core/common/toolcall"
 
 	"chatgpt-adapter/core/common/vars"
 	"chatgpt-adapter/core/gin/inter"
@@ -25,15 +26,18 @@ func New(container *sdk.Container) *Handler {
 	return &Handler{extensions}
 }
 
+/*
 // @GET(path = "/")
 func (h *Handler) index(gtx *gin.Context) {
 	gtx.Writer.WriteString("<div style='color:green'>success ~</div>")
 }
+*/
 
 // @POST(path = "
 //
 //	v1/chat/completions,
 //	v1/object/completions,
+//	api/openai/v1/chat/completions,
 //	proxies/v1/chat/completions
 //
 // ")

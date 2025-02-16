@@ -6,6 +6,8 @@ import (
 	"github.com/iocgo/sdk/errors"
 )
 
+//go:generate goversioninfo -arm -o=resource_windows.syso -icon=favicon.ico
+
 func main() {
 	ctx := errors.New(nil)
 	{

@@ -45,22 +45,23 @@ func init() {
 			logger.Fatal("Error initializing HTTPClient: ", err)
 		}
 	})
+	/*
+		inited.AddInitialized(func(env *env.Environment) {
+			if !env.GetBool("browser-less.enabled") {
+				return
+			}
 
-	inited.AddInitialized(func(env *env.Environment) {
-		if !env.GetBool("browser-less.enabled") {
-			return
-		}
+			port := env.GetString("browser-less.port")
+			if port == "" {
+				// logger.Fatal("please config browser-less.port to use")
+				return
+			}
 
-		port := env.GetString("browser-less.port")
-		if port == "" {
-			// logger.Fatal("please config browser-less.port to use")
-			return
-		}
-
-		proxied := env.GetString("server.proxied")
-		Exec(port, proxied, os.Stdout, os.Stderr)
-		inited.AddExited(Exit)
-	})
+			proxied := env.GetString("server.proxied")
+			Exec(port, proxied, os.Stdout, os.Stderr)
+			inited.AddExited(Exit)
+		})
+	*/
 }
 
 func GetIdleConnectOptions(env *env.Environment) (options []emit.OptionHelper) {

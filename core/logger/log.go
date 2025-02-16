@@ -1,10 +1,6 @@
 package logger
 
 import (
-	nested "github.com/antonfisher/nested-logrus-formatter"
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
-	"github.com/sirupsen/logrus"
-
 	"io"
 	"os"
 	"path"
@@ -13,6 +9,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	nested "github.com/antonfisher/nested-logrus-formatter"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/sirupsen/logrus"
 )
 
 func InitLogger(basePath string, level logrus.Level) {

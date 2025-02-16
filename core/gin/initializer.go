@@ -1,15 +1,19 @@
 package gin
 
 import (
+	"io/fs"
+	"net/http"
+	"net/http/httputil"
+	"strings"
+
 	"chatgpt-adapter/core/logger"
+	"chatgpt-adapter/www"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/iocgo/sdk"
 	"github.com/iocgo/sdk/env"
 	"github.com/iocgo/sdk/router"
-	"net/http"
-	"net/http/httputil"
-	"strings"
 )
 
 var (
@@ -19,6 +23,10 @@ var (
 // @Inject(lazy="false", name="ginInitializer")
 func Initialized(env *env.Environment) sdk.Initializer {
 	debug = env.GetBool("server.debug")
+
+	public, _ := fs.Sub(www.Dist, "public")
+	_next, _ := fs.Sub(public, "_next")
+
 	return sdk.InitializedWrapper(0, func(container *sdk.Container) (err error) {
 		sdk.ProvideTransient(container, sdk.NameOf[*gin.Engine](), func() (engine *gin.Engine, err error) {
 			if !debug {
@@ -32,6 +40,19 @@ func Initialized(env *env.Environment) sdk.Initializer {
 				engine.Use(token)
 			}
 			engine.Static("/file/", "tmp")
+			engine.StaticFS("/_next", http.FS(_next))
+			engine.NoRoute(func(c *gin.Context) {
+				filename := strings.TrimLeft(c.Request.URL.Path, "/")
+				if filename == "/" || filename == "" {
+					filename = "index.html"
+				}
+				if _, err = fs.Stat(public, filename); err != nil {
+					logger.Error("文件不存在", "uri", filename, "error", err.Error())
+					c.AbortWithStatus(http.StatusNotFound)
+					return
+				}
+				http.FileServer(http.FS(public)).ServeHTTP(c.Writer, c.Request)
+			})
 			beans := sdk.ListInvokeAs[router.Router](container)
 			for _, route := range beans {
 				route.Routers(engine)
