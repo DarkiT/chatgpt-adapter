@@ -3,13 +3,13 @@ module chatgpt-adapter
 go 1.23.3
 
 require (
-	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/bincooo/coze-api v1.0.2-0.20250118010946-7c4f3c5e25ea
 	github.com/bincooo/edge-api v1.0.4-0.20250211074233-37fe84649a9b
 	github.com/bincooo/emit.io v1.0.1-0.20250107024658-671bcfad17e9
 	github.com/bincooo/you.com v0.0.0-20250205070606-666b6847729b
 	github.com/bogdanfinn/tls-client v1.7.7
 	github.com/darkit/machineid v1.0.5
+	github.com/darkit/slog v0.0.23
 	github.com/dlclark/regexp2 v1.11.4
 	github.com/eko/gocache/lib/v4 v4.1.6
 	github.com/eko/gocache/store/go_cache/v4 v4.2.2
@@ -19,10 +19,8 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.6.0
 	github.com/iocgo/sdk v0.0.0-20241203133330-43dcedf3291e
-	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/samber/go-gpt-3-encoder v0.3.1
-	github.com/sirupsen/logrus v1.9.3
 	github.com/wasmerio/wasmer-go v1.0.5-0.20250109124841-f09913d8a0be
 	google.golang.org/protobuf v1.36.0
 )
@@ -56,12 +54,10 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/lestrrat-go/strftime v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
@@ -69,7 +65,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
@@ -80,6 +75,7 @@ require (
 	github.com/samber/do/v2 v2.0.0-beta.7 // indirect
 	github.com/samber/go-type-to-string v1.6.1 // indirect
 	github.com/samber/lo v1.37.0 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect

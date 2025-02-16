@@ -136,7 +136,7 @@ func NewPPLSession(env *env.Environment) (ok bool, session *emit.Session) {
 		}
 		data := obj["data"].([]interface{})[0].(map[string]interface{})
 		proxied = strings.ToLower(fmt.Sprintf("%s://%s:%v", data["t"], data["addr"], data["port"]))
-		logger.Info(data)
+		logger.Infof("data: %v",data)
 		ok = true
 	} else {
 		proxied = emit.TextResponse(response)

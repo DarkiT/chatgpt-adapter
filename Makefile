@@ -18,9 +18,6 @@ install: clean
 build-linux:
 	${ENV} GOARCH=amd64 GOOS=linux go build -toolexec iocgo -ldflags="-s -w" -o bin/linux/${TARGET_EXEC} -trimpath main.go
 
-build-osx:
-	${ENV} GOARCH=amd64 GOOS=darwin go build  -toolexec iocgo -ldflags="-s -w" -o bin/osx/${TARGET_EXEC} -trimpath main.go
-
 build-linux-arm64:
 	${ENV} GOARCH=arm64 GOOS=linux go build  -toolexec iocgo -ldflags="-s -w" -o bin/linux/${TARGET_EXEC}-arm64 -trimpath main.go
 

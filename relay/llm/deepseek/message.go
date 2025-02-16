@@ -45,7 +45,7 @@ func waitMessage(r *http.Response, cancel func(str string) bool) (content string
 
 		err = json.Unmarshal(dataBytes, &res)
 		if err != nil {
-			logger.Warn(err)
+			logger.Error(err)
 			continue
 		}
 
@@ -112,7 +112,7 @@ func waitResponse(ctx *gin.Context, r *http.Response, sse bool) (content string)
 
 		err = json.Unmarshal(dataBytes, &res)
 		if err != nil {
-			logger.Warn(err)
+			logger.Error(err)
 			continue
 		}
 

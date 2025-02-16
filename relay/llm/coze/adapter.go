@@ -50,7 +50,7 @@ func (api *api) Match(ctx *gin.Context, model string) (ok bool, err error) {
 		values := strings.Split(model[5:], "-")
 		if len(values) > 2 {
 			_, err = strconv.Atoi(values[2])
-			logger.Warn(err)
+			logger.Error(err)
 			ok = err == nil
 			return
 		}

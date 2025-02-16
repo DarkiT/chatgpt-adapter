@@ -3,14 +3,12 @@ package gin
 import (
 	"io/fs"
 	"net/http"
-	"net/http/httputil"
 	"strings"
 
 	"chatgpt-adapter/core/logger"
 	"chatgpt-adapter/www"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/iocgo/sdk"
 	"github.com/iocgo/sdk/env"
 	"github.com/iocgo/sdk/router"
@@ -33,7 +31,7 @@ func Initialized(env *env.Environment) sdk.Initializer {
 				gin.SetMode(gin.ReleaseMode)
 			}
 
-			engine = gin.Default()
+			engine = gin.New()
 			{
 				engine.Use(gin.Recovery())
 				engine.Use(cros)
@@ -47,7 +45,7 @@ func Initialized(env *env.Environment) sdk.Initializer {
 					filename = "index.html"
 				}
 				if _, err = fs.Stat(public, filename); err != nil {
-					logger.Error("文件不存在", "uri", filename, "error", err.Error())
+					logger.Errorf("文件不存在: %s %v", filename, err)
 					c.AbortWithStatus(http.StatusNotFound)
 					return
 				}
@@ -96,16 +94,6 @@ func cros(gtx *gin.Context) {
 		gtx.Next()
 		return
 	}
-
-	uid := uuid.NewString()
-	// 请求打印
-	data, _ := httputil.DumpRequest(gtx.Request, debug)
-	logger.Infof("------ START REQUEST %s ---------", uid)
-	println(string(data))
-
 	// 处理请求
 	gtx.Next()
-
-	// 结束处理
-	logger.Infof("------ END REQUEST %s ---------", uid)
 }

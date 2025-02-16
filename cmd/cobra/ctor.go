@@ -8,7 +8,6 @@ import (
 	"github.com/iocgo/sdk"
 	"github.com/iocgo/sdk/cobra"
 	"github.com/iocgo/sdk/env"
-	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
 )
@@ -69,10 +68,7 @@ func (rc *RootCommand) Run(cmd *cobra.Command, args []string) {
 	}
 
 	// init
-	logger.InitLogger(
-		rc.LogPath,
-		LogLevel(rc.LogLevel),
-	)
+	logger.InitLogger(rc.LogPath)
 	Initialized(rc)
 	inited.Initialized(rc.env)
 
@@ -102,21 +98,6 @@ func Initialized(rc *RootCommand) {
 	}
 
 	initFile(rc.env)
-}
-
-func LogLevel(lv string) logrus.Level {
-	switch lv {
-	case "trace":
-		return logrus.TraceLevel
-	case "debug":
-		return logrus.DebugLevel
-	case "warn":
-		return logrus.WarnLevel
-	case "error":
-		return logrus.ErrorLevel
-	default:
-		return logrus.InfoLevel
-	}
 }
 
 func initFile(env *env.Environment) {

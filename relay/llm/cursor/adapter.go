@@ -1,15 +1,18 @@
 package cursor
 
 import (
+	"net/url"
+	"strings"
+
+	"chatgpt-adapter/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/iocgo/sdk/env"
+
 	"chatgpt-adapter/core/common"
 	"chatgpt-adapter/core/gin/inter"
 	"chatgpt-adapter/core/gin/model"
 	"chatgpt-adapter/core/gin/response"
 	"chatgpt-adapter/core/logger"
-	"github.com/gin-gonic/gin"
-	"github.com/iocgo/sdk/env"
-	"net/url"
-	"strings"
 )
 
 var (
@@ -128,6 +131,17 @@ func (api *api) Completion(ctx *gin.Context) (err error) {
 	buffer, err := convertRequest(completion)
 	if err != nil {
 		return
+	}
+
+	if cookie == "" {
+		authToken := utils.GetAuthToken(false)
+		cookie = authToken.Cookie
+
+		if authToken.Checksum == "" {
+			authToken.Checksum = utils.GenChecksum(authToken)
+		}
+		ctx.Set("checksum", authToken.Checksum)
+		ctx.Set("token", cookie)
 	}
 
 	r, err := fetch(ctx, api.env, cookie, buffer)

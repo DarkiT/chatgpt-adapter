@@ -10,7 +10,7 @@ import (
 )
 
 // @POST(path = "/api/token")
-func (h *Handler) index(c *gin.Context) {
+func (h *Handler) token(c *gin.Context) {
 	var req *utils.ConfigRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -30,4 +30,17 @@ func (h *Handler) index(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, message)
+}
+
+// @POST(path = "/api/config")
+func (h *Handler)  config(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"needCode":         false,
+		"hideUserApiKey":   false,
+		"disableGPT4":      false,
+		"hideBalanceQuery": true,
+		"disableFastLink":  false,
+		"customModels":     "",
+		"defaultModel":     "deepseek-r1",
+	})
 }
