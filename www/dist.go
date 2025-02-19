@@ -1,7 +1,6 @@
 package www
 
 import (
-	"chatgpt-adapter/utils"
 	"embed"
 	"fmt"
 	"os"
@@ -34,7 +33,6 @@ func init() {
 		return
 	}
 
-	utils.GetAuthToken(true)
 }
 
 // validateAuth 验证授权

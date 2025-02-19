@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"chatgpt-adapter/core/logger"
+	"chatgpt-adapter/utils"
 	"chatgpt-adapter/www"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +43,12 @@ func Initialized(env *env.Environment) sdk.Initializer {
 			engine.NoRoute(func(c *gin.Context) {
 				filename := strings.TrimLeft(c.Request.URL.Path, "/")
 				if filename == "/" || filename == "" {
-					filename = "index.html"
+					if utils.GetAuthToken() == nil {
+						c.Redirect(302, "/token.html")
+						return
+					} else {
+						filename = "index.html"
+					}
 				}
 				if _, err = fs.Stat(public, filename); err != nil {
 					logger.Errorf("文件不存在: %s %v", filename, err)

@@ -3,7 +3,7 @@ ENV := CGO_ENABLED=0
 
 .PHONY: all changelog clean install build
 
-all: clean install build-win build-linux build-linux-arm64 build-osx
+all: clean install build-win build-linux build-linux-arm64 build-osx build-tar
 
 changelog:
 	conventional-changelog -p angular -o CHANGELOG.md -w -r 0
@@ -27,5 +27,5 @@ build-osx:
 build-win:
 	${ENV} GOARCH=amd64 GOOS=windows go build  -toolexec iocgo -ldflags="-s -w" -o bin/windows/${TARGET_EXEC}.exe -trimpath main.go
 
-build:
+build-tar:
 	tar -czvf ./server.tar.gz ./bin

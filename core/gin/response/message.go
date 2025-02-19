@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/iocgo/sdk"
 	"github.com/iocgo/sdk/env"
+	"chatgpt-adapter/core/gin/model"
 )
 
 const (
@@ -120,4 +121,13 @@ func IsClaude(ctx *gin.Context, model string) bool {
 	}
 
 	return isc
+}
+
+func ConvertToText(keyv interface{}) (s string) {
+	var kv model.Keyv[interface{}]
+	kv, ok := keyv.(map[string]interface{})
+	if !ok || !kv.Is("type", "text") {
+		return
+	}
+	return kv.GetString("text")
 }

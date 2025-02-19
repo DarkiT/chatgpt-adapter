@@ -1,6 +1,7 @@
 package cursor
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -16,7 +17,7 @@ import (
 )
 
 var (
-	Model = "cursor"
+	Model = "zishuo"
 )
 
 type api struct {
@@ -134,14 +135,18 @@ func (api *api) Completion(ctx *gin.Context) (err error) {
 	}
 
 	if cookie == "" {
-		authToken := utils.GetAuthToken(false)
-		cookie = authToken.Cookie
+		authToken := utils.GetAuthToken()
 
+		userID, _cookie, _ := utils.ValidateToken(authToken.Cookie)
 		if authToken.Checksum == "" {
-			authToken.Checksum = utils.GenChecksum(authToken)
+			checksum, ok := utils.GenChecksum(authToken)
+			authToken.Checksum = checksum
+			ctx.Set("refresh", ok)
 		}
+		cookie = _cookie
 		ctx.Set("checksum", authToken.Checksum)
-		ctx.Set("token", cookie)
+		ctx.Set("token", _cookie)
+		ctx.Set("checktoken", fmt.Sprintf("%s%%3A%%3A%s", userID, cookie))
 	}
 
 	r, err := fetch(ctx, api.env, cookie, buffer)

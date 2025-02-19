@@ -41,12 +41,18 @@ func fetch(ctx *gin.Context, env *env.Environment, cookie string, buffer []byte)
 		return
 	}
 
-	logger.Infof("count: %d checksum: %s", count, ctx.GetString("checksum"))
+	logger.Infof("count: %d checksum: %s",  count, ctx.GetString("checksum"))
 
-	response, err = emit.ClientBuilder(common.HTTPClient).
-		Context(ctx.Request.Context()).
-		Proxies(env.GetString("server.proxied")).
-		POST("https://api2.cursor.sh/aiserver.v1.AiService/StreamChat").
+	getApi := emit.ClientBuilder(common.HTTPClient).Context(ctx.Request.Context()).Proxies(env.GetString("server.proxied"))
+	if ctx.GetBool("refresh") {
+		getApi.Header("X-Amzn-Trace-Id", "Root="+uuid.New().String())
+	} else {
+		getApi.Header("X-Request-Id", uuid.New().String())
+	}
+	//response, err = emit.ClientBuilder(common.HTTPClient).
+	//	Context(ctx.Request.Context()).
+	//	Proxies(env.GetString("server.proxied")).
+	response, err = getApi.POST("https://api2.cursor.sh/aiserver.v1.AiService/StreamChat").
 		Header("Connect-Accept-Encoding", "gzip").
 		Header("Authorization", "Bearer "+cookie).
 		Header("Connect-Protocol-Version", "1").
@@ -64,6 +70,7 @@ func fetch(ctx *gin.Context, env *env.Environment, cookie string, buffer []byte)
 		DoC(emit.Status(http.StatusOK), emit.IsPROTO)
 	return
 }
+
 
 func convertRequest(completion model.Completion) (buffer []byte, err error) {
 	messages := stream.Map(stream.OfSlice(completion.Messages), func(message model.Keyv[interface{}]) *ChatMessage_UserMessage {
@@ -100,7 +107,7 @@ func convertRequest(completion model.Completion) (buffer []byte, err error) {
 
 func checkUsage(ctx *gin.Context, env *env.Environment, max int) (count int, err error) {
 	var (
-		cookie = ctx.GetString("token")
+		cookie = ctx.GetString("checktoken")
 	)
 	cookie, err = url.QueryUnescape(cookie)
 	if err != nil {
