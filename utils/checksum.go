@@ -179,7 +179,9 @@ func ValidateToken(tokenString string) (string, string, bool) {
 	token, _ := jwt.ParseWithClaims(tokenString, &jwtInfo{}, func(token *jwt.Token) (interface{}, error) {
 		return nil, nil
 	})
-
+	if token == nil {
+		return "", "", false
+	}
 	subject, err := token.Claims.GetSubject()
 	if err != nil {
 		return "", "", false

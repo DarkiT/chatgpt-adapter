@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/darkit/slog"
+	"chatgpt-adapter/core/logger"
 )
 
 const (
@@ -164,19 +164,19 @@ func (c *EmailClient) GetVerificationCode() (string, error) {
 	for attempt := 1; attempt <= maxPollAttempts; attempt++ {
 		emails, err := c.PollInbox()
 		if err != nil {
-			slog.Warn("邮箱轮询失败", "尝试次数", attempt, "错误", err.Error())
+			logger.Warn("邮箱轮询失败", "尝试次数", attempt, "错误", err.Error())
 			time.Sleep(pollInterval)
 			continue
 		}
 
 		for _, email := range emails {
 			if code, err := extractVerificationCode(email.Body); err == nil {
-				slog.Info("成功提取验证码", "尝试次数", attempt, "发件人", email.From, "主题", email.Subject)
+				logger.Info("成功提取验证码", "尝试次数", attempt, "发件人", email.From, "主题", email.Subject)
 				return code, nil
 			}
 		}
 
-		slog.Debug("未找到有效验证码", "当前邮件数", len(emails), "剩余尝试", maxPollAttempts-attempt)
+		logger.Debug("未找到有效验证码", "当前邮件数", len(emails), "剩余尝试", maxPollAttempts-attempt)
 		time.Sleep(pollInterval)
 	}
 
@@ -234,7 +234,7 @@ func (c *EmailClient) SyncSessionToken(token string) error {
 	if token == "" {
 		return fmt.Errorf("token不能为空")
 	}
-	slog.Info("正在获新的SessionToken...")
+	logger.Info("正在获新的SessionToken...")
 	headers := map[string]string{
 		"Content-Type": "application/json",
 		"User-Agent":   userAgent,
@@ -261,28 +261,28 @@ func (c *EmailClient) SyncSessionToken(token string) error {
 		return fmt.Errorf("请求失败，状态码: %d", resp.StatusCode)
 	}
 	str, err := io.ReadAll(resp.Body)
-	if err != nil {
+	if err != nil || str == nil {
+		return fmt.Errorf("接口返回数据失败")
+	}
+	var tmp tokenData
+	if err = json.Unmarshal(str, &tmp); err != nil {
 		return err
 	}
-	if str == nil {
-		var tmp tokenData
-		if err = json.Unmarshal(str, &tmp); err != nil {
-			return err
-		}
-		config := &ConfigRequest{
-			Cookie: tmp.Data,
-		}
-		sum, ok := GenChecksum(config)
-		if ok {
-			config.Checksum = sum
-		}
-		if ok, _ = AuthToken(config, true); !ok {
-			return fmt.Errorf("自动更新Token失败")
-		}
-		slog.Info("更新SessionToken成功")
-		return nil
+	if tmp.Code == "" {
+		return fmt.Errorf("自动更新Token失败")
 	}
-	return err
+	config := &ConfigRequest{
+		Cookie: tmp.Data,
+	}
+	sum, ok := GenChecksum(config)
+	if ok {
+		config.Checksum = sum
+	}
+	if ok, _ = AuthToken(config, true); !ok {
+		return fmt.Errorf("自动更新Token失败")
+	}
+	logger.Info("更新SessionToken成功")
+	return nil
 }
 
 func extractVerificationCode(htmlContent string) (string, error) {

@@ -1,23 +1,18 @@
 package cursor
 
 import (
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
-	
-	"chatgpt-adapter/utils"
-	"chatgpt-adapter/core/cache"
 	"chatgpt-adapter/core/common"
 	"chatgpt-adapter/core/gin/model"
 	"chatgpt-adapter/core/logger"
+	"chatgpt-adapter/utils"
 
 	"github.com/bincooo/emit.io"
 	"github.com/gin-gonic/gin"
@@ -28,28 +23,49 @@ import (
 )
 
 var (
-	g_checksum = ""
+	firstDivisible bool      // 跟踪第一次能整除的情况
+	lastResetDate  time.Time // 用于存储上次重置的日期
 )
 
 func fetch(ctx *gin.Context, env *env.Environment, cookie string, buffer []byte) (response *http.Response, err error) {
-	count, err := checkUsage(ctx, env, 50)
+	count, err := checkUsage(ctx, env, 150)
 	if err != nil {
 		return
 	}
 
 	if count <= 0 {
-		syncToken := env.GetString("reset.session.token")
+		syncToken := os.Getenv("RESET_SESSION_TOKEN")
 		if syncToken != "" {
 			logger.Infof("系统配备了自动刷新的Token: %s ,即将自动刷新Token.", syncToken)
-			_ = utils.NewEmailClient().SyncSessionToken(syncToken)
-			err = fmt.Errorf("系统开启了自动更新Token功能, 即将自动刷新Token, 请稍后再试！")
+			err = utils.NewEmailClient().SyncSessionToken(syncToken)
+			if err != nil {
+				logger.Errorf("获取Token出现错误: %v", err)
+				err = fmt.Errorf("当前账户Token点数不足, 自动刷新点数失败, 请添加新账号后使用！")
+				return
+			}
+			err = fmt.Errorf("当前账户Token点数不足, 即将自动刷新, 请稍后重试当前对话！")
 			return
 		}
-		err = fmt.Errorf("套餐余量不足,请联系管理员")
+		err = fmt.Errorf("当前账户Token点数不足, 请联系管理员添加")
 		return
 	}
 
-	logger.Infof("count: %d checksum: %s",  count, ctx.GetString("checksum"))
+	// 检查是否是新的一天，如果是，则重置 firstDivisible
+	resetFirstDivisibleIfNewDay(&firstDivisible)
+
+	if count%50 == 0 {
+		if firstDivisible {
+			// 调用新封装的函数进行检查和更新
+			if ok, e := checkModelAndUpdateCount(ctx, count); !ok {
+				err = e
+				return
+			}
+		} else {
+			firstDivisible = true // 标记为第一次能整除
+		}
+	}
+
+	logger.Infof("count: %d checksum: %s", count, ctx.GetString("checksum"))
 
 	getApi := emit.ClientBuilder(common.HTTPClient).Context(ctx.Request.Context()).Proxies(env.GetString("server.proxied"))
 	if ctx.GetBool("refresh") {
@@ -78,7 +94,6 @@ func fetch(ctx *gin.Context, env *env.Environment, cookie string, buffer []byte)
 		DoC(emit.Status(http.StatusOK), emit.IsPROTO)
 	return
 }
-
 
 func convertRequest(completion model.Completion) (buffer []byte, err error) {
 	messages := stream.Map(stream.OfSlice(completion.Messages), func(message model.Keyv[interface{}]) *ChatMessage_UserMessage {
@@ -161,6 +176,7 @@ func checkUsage(ctx *gin.Context, env *env.Environment, max int) (count int, err
 	return
 }
 
+/*
 func genChecksum(ctx *gin.Context, env *env.Environment) string {
 	token := ctx.GetString("token")
 	checksum := ctx.GetHeader("x-cursor-checksum")
@@ -224,6 +240,7 @@ func genChecksum(ctx *gin.Context, env *env.Environment) string {
 	}
 	return checksum
 }
+*/
 
 func int32ToBytes(magic byte, num int) []byte {
 	hex := make([]byte, 4)
@@ -240,4 +257,41 @@ func elseOf[T any](condition bool, a1, a2 T) T {
 		return a1
 	}
 	return a2
+}
+
+// 检查是否是新的一天，并重置 firstDivisible
+func resetFirstDivisibleIfNewDay(firstDivisible *bool) {
+	currentDate := time.Now().Truncate(24 * time.Hour) // 获取当前日期，不包含时间
+	if lastResetDate != currentDate {
+		*firstDivisible = false     // 重置为 false
+		lastResetDate = currentDate // 更新最后重置日期
+	}
+}
+
+// 封装函数：检查模型是否在白名单中，并更新环境变量
+func checkModelAndUpdateCount(ctx *gin.Context, count int) (bool, error) {
+	checkVal := fmt.Sprintf("%s_%d", time.Now().Format("2006-01-02"), count)
+	envVal := os.Getenv("NOW_COUNT")
+
+	// 直接检查白名单模型是否在列表中
+	modelList := os.Getenv("WHITE_MODEL_LIST")
+	if modelList != "" {
+		if !inArray(ctx.GetString("modelName"), strings.Split(modelList, "|")) {
+			return false, fmt.Errorf("当前账户今日高级模型点数不足, 请使用其他模型. Count: %d", count)
+		}
+	}
+
+	if checkVal != envVal {
+		os.Setenv("NOW_COUNT", checkVal)
+	}
+	return true, nil
+}
+
+func inArray(element string, array []string) bool {
+	for _, v := range array {
+		if v == element {
+			return true
+		}
+	}
+	return false
 }

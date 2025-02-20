@@ -120,6 +120,8 @@ func (api *api) Completion(ctx *gin.Context) (err error) {
 		completion = common.GetGinCompletion(ctx)
 	)
 
+	ctx.Set("modelName", completion.Model)
+	
 	cookie, err = url.QueryUnescape(cookie)
 	if err != nil {
 		return
