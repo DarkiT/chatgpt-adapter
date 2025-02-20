@@ -43,25 +43,25 @@ type jwtInfo struct {
 }
 
 func GetAuthToken() *ConfigRequest {
-	ok, tk := AuthToken(nil, false)
-	client := NewEmailClient()
-	if ok {
-		syncToken := os.Getenv("RESET_SESSION_TOKEN")
-		if syncToken != "" {
-			userID, cookie, ok := ValidateToken(tk.Cookie)
-			if !ok {
-				return nil
-			}
-			usage, err := client.GetUsage(userID, cookie)
-			if err == nil {
-				if usage.GPT4.NumRequests >= 150 {
-					_ = client.SyncSessionToken(syncToken)
-				}
-			} else {
-				slog.Error("获取usage失败", "error", err.Error())
-			}
-		}
-	}
+	_, tk := AuthToken(nil, false)
+	// client := NewEmailClient()
+	// if ok {
+	// 	syncToken := os.Getenv("RESET_SESSION_TOKEN")
+	// 	if syncToken != "" {
+	// 		userID, cookie, ok := ValidateToken(tk.Cookie)
+	// 		if !ok {
+	// 			return nil
+	// 		}
+	// 		usage, err := client.GetUsage(userID, cookie)
+	// 		if err == nil {
+	// 			if usage.GPT4.NumRequests >= 150 {
+	// 				_ = client.SyncSessionToken(syncToken)
+	// 			}
+	// 		} else {
+	// 			slog.Error("获取usage失败", "error", err.Error())
+	// 		}
+	// 	}
+	// }
 
 	return tk
 }

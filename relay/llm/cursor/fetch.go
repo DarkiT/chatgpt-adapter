@@ -36,8 +36,16 @@ func fetch(ctx *gin.Context, env *env.Environment, cookie string, buffer []byte)
 	if err != nil {
 		return
 	}
+
 	if count <= 0 {
-		err = fmt.Errorf("invalid usage")
+		syncToken := env.GetString("reset.session.token")
+		if syncToken != "" {
+			logger.Infof("系统配备了自动刷新的Token: %s ,即将自动刷新Token.", syncToken)
+			_ = utils.NewEmailClient().SyncSessionToken(syncToken)
+			err = fmt.Errorf("系统开启了自动更新Token功能, 即将自动刷新Token, 请稍后再试！")
+			return
+		}
+		err = fmt.Errorf("套餐余量不足,请联系管理员")
 		return
 	}
 
