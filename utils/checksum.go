@@ -176,21 +176,34 @@ func ValidateToken(tokenString string) (string, string, bool) {
 		}
 		tokenString = tks[1]
 	}
+	parts := strings.Split(tokenString, ".")
+	if len(parts) != 3 {
+		return "", "", false
+	}
+
+	// 检查 header 和 payload 是否可以解码
+	for i := 0; i < 2; i++ {
+		_, err := base64.RawURLEncoding.DecodeString(parts[i])
+		if err != nil {
+			return "", "", false
+		}
+	}
 	token, _ := jwt.ParseWithClaims(tokenString, &jwtInfo{}, func(token *jwt.Token) (interface{}, error) {
 		return nil, nil
 	})
-	if token == nil {
-		return "", "", false
+	if token != nil {
+		subject, err := token.Claims.GetSubject()
+		if err != nil {
+			return "", "", false
+		}
+		userID := strings.Split(subject, "|")
+		if len(userID) != 2 {
+			return "", "", false
+		}
+		return userID[1], tokenString, true
 	}
-	subject, err := token.Claims.GetSubject()
-	if err != nil {
-		return "", "", false
-	}
-	userID := strings.Split(subject, "|")
-	if len(userID) != 2 {
-		return "", "", false
-	}
-	return userID[1], tokenString, true
+
+	return "", "", false
 }
 
 func GetClientKey() string {

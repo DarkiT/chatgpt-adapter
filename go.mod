@@ -2,6 +2,8 @@ module chatgpt-adapter
 
 go 1.23.3
 
+toolchain go1.23.6
+
 require (
 	github.com/bincooo/coze-api v1.0.2-0.20250118010946-7c4f3c5e25ea
 	github.com/bincooo/edge-api v1.0.4-0.20250211074233-37fe84649a9b
@@ -18,7 +20,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.6.0
-	github.com/iocgo/sdk v0.0.0-20241203133330-43dcedf3291e
+	github.com/iocgo/sdk v0.0.0-20241212221350-de20e9d96df0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/samber/go-gpt-3-encoder v0.3.1
 	github.com/wasmerio/wasmer-go v1.0.5-0.20250109124841-f09913d8a0be

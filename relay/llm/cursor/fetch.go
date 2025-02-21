@@ -25,13 +25,16 @@ import (
 var (
 	firstDivisible bool      // 跟踪第一次能整除的情况
 	lastResetDate  time.Time // 用于存储上次重置的日期
-	modelList      []string  // 存储白名单模型列表
+	whiteModelList []string  // 存储白名单模型列表
 	syncToken      string    // 存储同步Token
 	nowCount       string    // 存储当前计数的环境变量
 )
 
 func init() {
-	modelList = strings.Split(os.Getenv("WHITE_MODEL_LIST"), "|")
+	envVar := os.Getenv("WHITE_MODEL_LIST")
+	if envVar != "" {
+		whiteModelList = strings.Split(envVar, "|")
+	}
 	syncToken = os.Getenv("RESET_SESSION_TOKEN")
 }
 
@@ -41,7 +44,7 @@ func fetch(ctx *gin.Context, env *env.Environment, cookie string, buffer []byte)
 		return
 	}
 
-	if count <= 0 {
+	if count <= 0 { // 如果当前计数小于等于0，则表示已经达到最大请求次数，需要刷新Token
 		if syncToken != "" {
 			logger.Infof("系统配备了自动刷新的Token: %s ,即将自动刷新Token.", syncToken)
 			err = utils.NewEmailClient().SyncSessionToken(syncToken)
@@ -207,14 +210,17 @@ func resetFirstDivisibleIfNewDay() {
 	}
 }
 
-
 // 封装函数：检查模型是否在白名单中，并更新当前计数
 func checkModelAndUpdateCount(ctx *gin.Context, count int) (bool, error) {
 	checkVal := fmt.Sprintf("%s_%d", time.Now().Format("2006-01-02"), count)
 
 	// 直接检查白名单模型是否在列表中
-	if !inArray(ctx.GetString("modelName"), modelList) {
-		return false, fmt.Errorf("当前账户今日高级模型点数不足, 请使用其他模型. Count: %d", count)
+	logger.Debug("请求模型", "model", ctx.GetString("runtime_model"))
+	logger.Debug("白名单列表", "whiteList", whiteModelList, "count", len(whiteModelList))
+	if len(whiteModelList) > 0 {
+		if !inArray(ctx.GetString("runtime_model"), whiteModelList) {
+			return false, fmt.Errorf("当前账户今日高级模型点数不足, 请使用其他模型. ")
+		}
 	}
 
 	if checkVal != nowCount {
